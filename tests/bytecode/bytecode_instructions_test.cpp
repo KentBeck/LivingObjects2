@@ -1,4 +1,5 @@
 #include "bytecode_test_helpers.hpp"
+#include "test_stubs.hpp"
 #include <gtest/gtest.h>
 #include <vector>
 #include <cstdint>

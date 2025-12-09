@@ -1,6 +1,9 @@
 #include "bytecode_test_helpers.hpp"
+#include "test_stubs.hpp"
 #include <cstring>
 #include <stdexcept>
+#include <cstdint>
+#include <memory>
 
 // TODO: Include actual headers when they're implemented
 // #include "src/tagged_value.hpp"
@@ -38,63 +41,62 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
     uint32_t numTemps,
     uint32_t primitiveNumber
 ) {
-    // TODO: Implement when CompiledMethod class exists
-    // For now, return nullptr to indicate not implemented
-    throw std::runtime_error("CompiledMethod not yet implemented");
+    // Stub implementation - returns a CompiledMethod with the provided data
+    return std::make_unique<CompiledMethod>(bytecode, literals, numArgs, numTemps, primitiveNumber);
 }
 
 std::unique_ptr<Context> createContext(
     CompiledMethod* method,
     TaggedValue receiver,
-    const std::vector<TaggedValue>& args
+    const std::vector<TaggedValue>& /* args */
 ) {
-    // TODO: Implement when Context class exists
-    throw std::runtime_error("Context not yet implemented");
+    // Stub implementation - creates a Context with the method and receiver
+    return std::make_unique<Context>(method, receiver);
 }
 
 bool stepInstruction(Context* context) {
     // TODO: Implement when Interpreter class exists
-    throw std::runtime_error("stepInstruction not yet implemented");
+    // For now, just throw to indicate not implemented
+    throw std::runtime_error("stepInstruction not yet implemented - need Interpreter");
 }
 
 uint32_t getInstructionPointer(Context* context) {
-    // TODO: Implement
-    throw std::runtime_error("getInstructionPointer not yet implemented");
+    if (!context) throw std::runtime_error("Context is null");
+    return context->instructionPointer;
 }
 
 std::vector<TaggedValue> getStack(Context* context) {
-    // TODO: Implement
-    throw std::runtime_error("getStack not yet implemented");
+    if (!context) throw std::runtime_error("Context is null");
+    return context->stack;
 }
 
 TaggedValue getStackTop(Context* context) {
-    // TODO: Implement
-    throw std::runtime_error("getStackTop not yet implemented");
+    if (!context) throw std::runtime_error("Context is null");
+    if (context->stack.empty()) throw std::runtime_error("Stack is empty");
+    return context->stack.back();
 }
 
 size_t getStackDepth(Context* context) {
-    // TODO: Implement
-    throw std::runtime_error("getStackDepth not yet implemented");
+    if (!context) throw std::runtime_error("Context is null");
+    return context->stack.size();
 }
 
 TaggedValue makeSmallInteger(int32_t value) {
-    // TODO: Implement when TaggedValue class exists
-    throw std::runtime_error("TaggedValue not yet implemented");
+    // Stub: encode as (value << 2) | 0x03
+    uintptr_t encoded = (static_cast<uintptr_t>(value) << 2) | 0x03;
+    return TaggedValue(encoded);
 }
 
 TaggedValue makeNil() {
-    // TODO: Implement
-    throw std::runtime_error("TaggedValue not yet implemented");
+    return TaggedValue(0x00000001);
 }
 
 TaggedValue makeTrue() {
-    // TODO: Implement
-    throw std::runtime_error("TaggedValue not yet implemented");
+    return TaggedValue(0x00000005);
 }
 
 TaggedValue makeFalse() {
-    // TODO: Implement
-    throw std::runtime_error("TaggedValue not yet implemented");
+    return TaggedValue(0x00000009);
 }
 
 } // namespace test_helpers

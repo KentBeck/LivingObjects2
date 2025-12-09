@@ -1,13 +1,11 @@
 #pragma once
 
+#include "test_stubs.hpp"
 #include <vector>
 #include <cstdint>
 #include <memory>
 
 // Forward declarations
-class TaggedValue;
-class CompiledMethod;
-class Context;
 class VM;
 
 namespace test_helpers {
