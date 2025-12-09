@@ -59,6 +59,28 @@ TEST(BytecodeInstructions, PushLiteral_Basic) {
     ASSERT_EQ(getInstructionPointer(context.get()), 5) << "Instruction pointer should advance by 5 bytes";
 }
 
+TEST(BytecodeInstructions, PushLiteral_Index1) {
+    // Arrange: PUSH_LITERAL with index 1
+    std::vector<uint8_t> bytecode = encodeInstruction(0, {1}); // PUSH_LITERAL index 1
+    
+    std::vector<TaggedValue> literals = {
+        makeSmallInteger(10),
+        makeSmallInteger(20)
+    };
+    
+    auto method = createCompiledMethod(bytecode, literals);
+    auto context = createContext(method.get(), makeSmallInteger(0));
+    
+    // Act
+    bool success = stepInstruction(context.get());
+    
+    // Assert
+    ASSERT_TRUE(success);
+    ASSERT_EQ(getStackDepth(context.get()), 1);
+    ASSERT_EQ(getStackTop(context.get()), literals[1]) << "Should push literal[1]";
+    ASSERT_EQ(getInstructionPointer(context.get()), 5);
+}
+
 // ============================================================================
 // Test Runner Main
 // ============================================================================
