@@ -1,6 +1,7 @@
 #pragma once
 
-#include "test_stubs.hpp"
+#include "../src/tagged_value.hpp"
+#include "vm_test_types.hpp"  // For CompiledMethod and Context (stubs until Phase 2.5/3.1)
 #include <vector>
 #include <cstdint>
 #include <memory>

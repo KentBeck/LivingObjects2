@@ -30,12 +30,20 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
+# VM core library (real implementations)
+add_library(vm_core
+    src/tagged_value.cpp
+)
+
 # Test helpers library
 add_library(bytecode_test_helpers
     tests/bytecode/bytecode_test_helpers.cpp
 )
 target_include_directories(bytecode_test_helpers PUBLIC
     ${CMAKE_SOURCE_DIR}/tests/bytecode
+)
+target_link_libraries(bytecode_test_helpers
+    vm_core
 )
 
 # Bytecode instruction tests

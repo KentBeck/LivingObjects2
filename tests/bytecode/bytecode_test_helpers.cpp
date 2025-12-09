@@ -1,5 +1,6 @@
 #include "bytecode_test_helpers.hpp"
-#include "test_stubs.hpp"
+#include "vm_test_types.hpp"
+#include "../src/tagged_value.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <cstdint>
@@ -121,21 +122,19 @@ size_t getStackDepth(Context* context) {
 }
 
 TaggedValue makeSmallInteger(int32_t value) {
-    // Encode as (value << 2) | 0x03
-    uintptr_t encoded = (static_cast<uintptr_t>(value) << 2) | 0x03;
-    return TaggedValue(encoded);
+    return TaggedValue::fromSmallInteger(value);
 }
 
 TaggedValue makeNil() {
-    return TaggedValue(0x00000001);
+    return TaggedValue::nil();
 }
 
 TaggedValue makeTrue() {
-    return TaggedValue(0x00000005);
+    return TaggedValue::trueValue();
 }
 
 TaggedValue makeFalse() {
-    return TaggedValue(0x00000009);
+    return TaggedValue::falseValue();
 }
 
 } // namespace test_helpers

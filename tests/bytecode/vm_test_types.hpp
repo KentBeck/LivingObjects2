@@ -1,19 +1,14 @@
 #pragma once
 
+#include "../src/tagged_value.hpp"  // Real TaggedValue implementation
 #include <vector>
 #include <cstdint>
 #include <cstddef>
 
-// Minimal stub types for testing
-// These will be replaced with real implementations when VM classes are created
-
-struct TaggedValue {
-    uintptr_t value;
-    TaggedValue() : value(0) {}
-    TaggedValue(uintptr_t v) : value(v) {}
-    bool operator==(const TaggedValue& other) const { return value == other.value; }
-    bool operator!=(const TaggedValue& other) const { return value != other.value; }
-};
+// Temporary stub types for testing
+// TaggedValue: REAL implementation in src/tagged_value.hpp ✓
+// CompiledMethod: STUB - will be replaced in Phase 2.5
+// Context: STUB - will be replaced in Phase 3.1
 
 // Minimal stub CompiledMethod
 class CompiledMethod {
