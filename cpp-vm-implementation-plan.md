@@ -164,53 +164,87 @@
 
 **Files**: `src/object.hpp`, `src/object.cpp`, `tests/object_test.cpp`
 
-#### 2.2 Special Object Types
+#### 2.2 Minimal Class Structure
 
-- [ ] SmallInteger class (immediate values use tagged encoding, but class object needed)
-- [ ] Character class (immediate values use tagged encoding, but class object needed)
-- [ ] Array implementation
-- [ ] String implementation (depends on Character)
-- [ ] Symbol implementation
-- [ ] ByteArray implementation
-- [ ] IdentityDictionary implementation (uses == for key comparison)
-- [ ] Unit tests for each
+- [ ] Implement minimal `Class` class (without method dictionaries)
+- [ ] Class hierarchy (superclass chain)
+- [ ] Instance variable definitions
+- [ ] Class name storage (as raw string initially)
+- [ ] Placeholder for method dictionary (null/empty)
+- [ ] Unit tests
 
-**Files**: `src/small_integer.hpp/cpp`, `src/character.hpp/cpp`, `src/array.hpp/cpp`, `src/string.hpp/cpp`, `src/symbol.hpp/cpp`, `src/byte_array.hpp/cpp`, `src/identity_dictionary.hpp/cpp`
+**Files**: `src/class.hpp`, `src/class.cpp`, `tests/class_test.cpp`
 
-**Note**: Special object types must be implemented before Class and CompiledMethod, as they are needed for method dictionaries, class names, bytecode storage, etc.
+**Note**: This is a bootstrap phase. Class needs IdentityDictionary for method dictionaries, but IdentityDictionary is itself a class. Solution: Create minimal Class first, then special classes, then IdentityDictionary, then complete Class with method dictionaries.
 
-**SmallInteger Notes**:
+#### 2.3 Special Object Type Classes
 
-- SmallInteger values are immediate (encoded in tagged values, Phase 1)
-- SmallInteger class object is a heap-allocated Class object needed for the class hierarchy
-- Used for primitive method dispatch (primitives 1-11)
+**Implementation Order** (must follow dependency chain):
 
-**Character Notes**:
+1. **SmallInteger class**
 
-- Character values are immediate (encoded in tagged values, Phase 1)
-- Character class object is a heap-allocated Class object needed for the class hierarchy
-- String operations (primitives 63-64) work with Character values
-- Character encoding: Unicode code point stored in tagged value
+   - SmallInteger values are immediate (tagged), but class object is heap-allocated
+   - Used for primitive method dispatch (primitives 1-11)
+
+2. **Character class**
+
+   - Character values are immediate (tagged), but class object is heap-allocated
+   - Character encoding: Unicode code point stored in tagged value
+   - String operations (primitives 63-64) work with Character values
+
+3. **Array class**
+
+   - Array instances need Array class
+   - Used by IdentityDictionary for storage
+
+4. **ByteArray class**
+
+   - ByteArray instances need ByteArray class
+   - Used by CompiledMethod for bytecode storage
+
+5. **String class** (depends on Character)
+
+   - String instances contain Character values
+   - Used by Symbol for string data
+
+6. **Symbol class** (depends on String)
+
+   - Symbol instances contain String data
+   - Used by IdentityDictionary as keys (identity equality)
+
+7. **IdentityDictionary class** (depends on Array, Symbol)
+   - Uses identity equality (`==`) for key comparison
+   - Uses Array for storage
+   - Used by Class for method dictionaries
+
+**Files**: `src/small_integer.hpp/cpp`, `src/character.hpp/cpp`, `src/array.hpp/cpp`, `src/byte_array.hpp/cpp`, `src/string.hpp/cpp`, `src/symbol.hpp/cpp`, `src/identity_dictionary.hpp/cpp`
+
+**Dependency Chain**:
+
+```
+SmallInteger → Character → Array → ByteArray
+                              ↓
+                            String → Symbol → IdentityDictionary
+```
 
 **IdentityDictionary vs Dictionary**:
 
 - **IdentityDictionary**: Uses identity equality (`==`) for key comparison. Used for method dictionaries where Symbol keys must match by identity.
 - **Dictionary**: Uses value equality (`=`) for key comparison. Implemented later (Phase 4 or 5) as it depends on value equality semantics.
 
-#### 2.3 Class System
+#### 2.4 Complete Class System
 
-- [ ] Implement `Class` class
-- [ ] Class hierarchy (superclass chain)
-- [ ] Instance variable definitions
+- [ ] Complete `Class` class with method dictionary support
 - [ ] Method dictionary (uses IdentityDictionary with Symbol keys)
 - [ ] Method lookup (with inheritance)
+- [ ] Method installation
 - [ ] Unit tests
 
 **Files**: `src/class.hpp`, `src/class.cpp`, `tests/class_test.cpp`
 
-**Note**: Class system depends on IdentityDictionary for method dictionaries (Symbol keys use identity equality) and Symbol for class names.
+**Note**: Now that IdentityDictionary class exists, we can complete Class with method dictionary support. All classes created in 2.3 can now have their method dictionaries populated.
 
-#### 2.4 CompiledMethod
+#### 2.5 CompiledMethod
 
 - [ ] Implement `CompiledMethod` class
 - [ ] Method layout (header + primitive + bytecode + literals)
@@ -221,7 +255,7 @@
 
 **Files**: `src/method.hpp`, `src/method.cpp`, `tests/method_test.cpp`
 
-**Note**: CompiledMethod depends on ByteArray for bytecode storage and Array for literals.
+**Note**: CompiledMethod depends on ByteArray for bytecode storage and Array for literals. Both are available from Phase 2.3.
 
 ### Phase 3: Execution Engine (Week 5-7)
 
@@ -897,6 +931,7 @@ A successful implementation must:
 
 - **VM Specification**: `smalltalk-vm-specification.md`
 - **Primitives Specification**: `smalltalk-primitives-specification.md`
+- **Class Dependency Analysis**: `class-dependency-analysis.md` (detailed dependency graph and ordering)
 - **Image Format**: `specs/image-format/schema/image-format.json`
 - **Bytecode Schemas**: `specs/bytecode/schema/*.json`
 - **Primitive Schemas**: `specs/primitives/schema/*.json`
