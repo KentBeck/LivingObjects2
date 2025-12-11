@@ -41,6 +41,7 @@ add_library(vm_core
 # Test helpers library
 add_library(bytecode_test_helpers
     tests/bytecode/bytecode_test_helpers.cpp
+    tests/bytecode/vm_test_types.cpp
 )
 target_include_directories(bytecode_test_helpers PUBLIC
     ${CMAKE_SOURCE_DIR}/tests/bytecode

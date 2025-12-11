@@ -12,6 +12,10 @@
 
 namespace test_helpers {
 
+// Storage for Array objects used in Context stacks
+// This is a temporary solution until we have proper memory management
+static std::unordered_map<const Context*, std::unique_ptr<Array>> stack_storage;
+
 void encodeUint32LE(std::vector<uint8_t>& bytes, uint32_t value) {
     bytes.push_back(static_cast<uint8_t>(value & 0xFF));
     bytes.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
@@ -74,7 +78,22 @@ std::unique_ptr<Context> createContext(
     TaggedValue receiver,
     const std::vector<TaggedValue>& /* args */
 ) {
-    return std::make_unique<Context>(method, receiver);
+    // Convert CompiledMethod* to TaggedValue
+    TaggedValue methodTagged = TaggedValue::fromPointer(method);
+    
+    // Create empty Array for stack
+    auto stackArray = std::make_unique<Array>();
+    TaggedValue stackTagged = Array::toTaggedValue(stackArray.get());
+    
+    // Create Context with Smalltalk objects
+    auto context = std::make_unique<Context>(methodTagged, receiver);
+    context->stack = stackTagged;
+    
+    // Keep stackArray alive by storing it with the context
+    // This is a temporary solution until we have proper memory management
+    stack_storage[context.get()] = std::move(stackArray);
+    
+    return context;
 }
 
 // Read a 32-bit little-endian value from ByteArray
@@ -89,17 +108,23 @@ static uint32_t readUint32LEFromByteArray(ByteArray* byteArray, uint32_t offset)
 }
 
 bool stepInstruction(Context* context) {
-    if (!context || !context->method) {
+    if (!context) {
+        return false;
+    }
+    
+    // Get CompiledMethod from TaggedValue
+    CompiledMethod* method = context->getMethod();
+    if (method == nullptr) {
         return false;
     }
     
     // Get ByteArray from CompiledMethod
-    ByteArray* byteArray = context->method->getByteArray();
+    ByteArray* byteArray = method->getByteArray();
     if (byteArray == nullptr) {
         return false; // No bytecode
     }
     
-    uint32_t ip = context->instructionPointer;
+    uint32_t ip = context->getInstructionPointerValue();
     
     // Check bounds
     if (ip >= byteArray->size()) {
@@ -120,7 +145,7 @@ bool stepInstruction(Context* context) {
         uint32_t index = readUint32LEFromByteArray(byteArray, ip + 1);
         
         // Get Array from CompiledMethod
-        Array* array = context->method->getArray();
+        Array* array = method->getArray();
         if (array == nullptr) {
             return false; // No literals
         }
@@ -130,12 +155,35 @@ bool stepInstruction(Context* context) {
             return false; // Index out of bounds
         }
         
+        // Get stack Array
+        Array* stackArray = context->getStackArray();
+        if (stackArray == nullptr) {
+            return false; // No stack
+        }
+        
         // Push literal onto stack
         TaggedValue literal = array->get(index);
-        context->stack.push_back(literal);
+        // Get current stack size and add new element
+        size_t stackSize = stackArray->size();
+        // Resize stack if needed (Array needs to be resizable)
+        // For now, we'll create a new array with the new element
+        std::vector<TaggedValue> stackElements;
+        for (size_t i = 0; i < stackSize; i++) {
+            stackElements.push_back(stackArray->get(i));
+        }
+        stackElements.push_back(literal);
+        
+        // Update stack Array
+        // We need to replace the stack Array with a new one containing the new element
+        // This is a temporary solution - in a real VM, Array would support dynamic resizing
+        auto newStackArray = std::make_unique<Array>(stackElements);
+        context->stack = Array::toTaggedValue(newStackArray.get());
+        
+        // Keep new stack array alive (replaces old one)
+        stack_storage[context] = std::move(newStackArray);
         
         // Advance instruction pointer by 5 bytes (1 opcode + 4 index)
-        context->instructionPointer = ip + 5;
+        context->setInstructionPointerValue(ip + 5);
         
         return true;
     }
@@ -146,23 +194,38 @@ bool stepInstruction(Context* context) {
 
 uint32_t getInstructionPointer(Context* context) {
     if (!context) throw std::runtime_error("Context is null");
-    return context->instructionPointer;
+    return context->getInstructionPointerValue();
 }
 
 std::vector<TaggedValue> getStack(Context* context) {
     if (!context) throw std::runtime_error("Context is null");
-    return context->stack;
+    Array* stackArray = context->getStackArray();
+    if (stackArray == nullptr) {
+        return std::vector<TaggedValue>();
+    }
+    std::vector<TaggedValue> result;
+    for (size_t i = 0; i < stackArray->size(); i++) {
+        result.push_back(stackArray->get(i));
+    }
+    return result;
 }
 
 TaggedValue getStackTop(Context* context) {
     if (!context) throw std::runtime_error("Context is null");
-    if (context->stack.empty()) throw std::runtime_error("Stack is empty");
-    return context->stack.back();
+    Array* stackArray = context->getStackArray();
+    if (stackArray == nullptr || stackArray->empty()) {
+        throw std::runtime_error("Stack is empty");
+    }
+    return stackArray->get(stackArray->size() - 1);
 }
 
 size_t getStackDepth(Context* context) {
     if (!context) throw std::runtime_error("Context is null");
-    return context->stack.size();
+    Array* stackArray = context->getStackArray();
+    if (stackArray == nullptr) {
+        return 0;
+    }
+    return stackArray->size();
 }
 
 TaggedValue makeSmallInteger(int64_t value) {
