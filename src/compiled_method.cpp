@@ -6,3 +6,23 @@ CompiledMethod::CompiledMethod(TaggedValue bytes, TaggedValue literals,
       numTemps_(numTemps), primitiveNumber_(primitiveNumber) {
 }
 
+ByteArray* CompiledMethod::getByteArray() const {
+    return ByteArray::fromTaggedValue(bytes_);
+}
+
+size_t CompiledMethod::getBytecodeSize() const {
+    ByteArray* byteArray = getByteArray();
+    if (byteArray == nullptr) {
+        return 0;
+    }
+    return byteArray->size();
+}
+
+uint8_t CompiledMethod::getBytecodeAt(size_t index) const {
+    ByteArray* byteArray = getByteArray();
+    if (byteArray == nullptr) {
+        return 0;
+    }
+    return byteArray->get(index);
+}
+

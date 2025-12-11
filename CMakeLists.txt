@@ -34,6 +34,7 @@ FetchContent_MakeAvailable(googletest)
 add_library(vm_core
     src/tagged_value.cpp
     src/compiled_method.cpp
+    src/byte_array.cpp
 )
 
 # Test helpers library

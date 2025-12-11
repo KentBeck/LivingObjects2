@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tagged_value.hpp"
+#include "byte_array.hpp"
 #include <cstdint>
 #include <cstddef>
 
@@ -27,9 +28,10 @@ public:
     uint32_t getNumTemps() const { return numTemps_; }
     uint32_t getPrimitiveNumber() const { return primitiveNumber_; }
     
-    // Convenience methods for accessing bytecode (will work once ByteArray is implemented)
-    // For now, these provide a way to access the underlying data
-    // Note: These assume ByteArray and Array are implemented and accessible
+    // Convenience methods for accessing ByteArray
+    ByteArray* getByteArray() const;
+    size_t getBytecodeSize() const;
+    uint8_t getBytecodeAt(size_t index) const;
     
 private:
     TaggedValue bytes_;           // Points to ByteArray containing bytecode

@@ -2,6 +2,7 @@
 #include "vm_test_types.hpp"
 #include "../src/tagged_value.hpp"
 #include "../src/compiled_method.hpp"
+#include "../src/byte_array.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <cstdint>
@@ -10,9 +11,8 @@
 
 namespace test_helpers {
 
-// Temporary storage for bytecode and literals until ByteArray and Array are implemented
-// This maps CompiledMethod pointers to their bytecode/literals for testing
-static std::unordered_map<const CompiledMethod*, std::vector<uint8_t>> bytecode_storage;
+// Temporary storage for literals until Array is implemented
+// ByteArray is now implemented, so bytecode is accessed through CompiledMethod's ByteArray
 static std::unordered_map<const CompiledMethod*, std::vector<TaggedValue>> literals_storage;
 
 void encodeUint32LE(std::vector<uint8_t>& bytes, uint32_t value) {
@@ -40,19 +40,30 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
     uint32_t numTemps,
     uint32_t primitiveNumber
 ) {
-    // Create CompiledMethod with nil for bytes and literals (ByteArray/Array not implemented yet)
-    // Store the actual bytecode/literals in temporary storage for testing
+    // Create ByteArray from bytecode vector
+    auto byteArray = std::make_unique<ByteArray>(bytecode);
+    TaggedValue bytesTagged = ByteArray::toTaggedValue(byteArray.get());
+    
+    // Create CompiledMethod with ByteArray for bytes
+    // Store byteArray in a way that it persists (we'll manage it with the CompiledMethod)
+    // For now, we'll keep the byteArray alive by storing it alongside the method
+    // TODO: Once we have proper memory management, ByteArray will be heap-allocated
     auto method = std::make_unique<CompiledMethod>(
-        TaggedValue::nil(),  // bytes (will be ByteArray once implemented)
+        bytesTagged,  // bytes (ByteArray)
         TaggedValue::nil(),  // literals (will be Array once implemented)
         numArgs,
         numTemps,
         primitiveNumber
     );
     
-    // Store bytecode and literals in temporary maps
-    bytecode_storage[method.get()] = bytecode;
+    // Store literals in temporary map (until Array is implemented)
     literals_storage[method.get()] = literals;
+    
+    // Keep byteArray alive by storing it with the method
+    // This is a temporary solution until we have proper memory management
+    // In a real VM, ByteArray would be heap-allocated and managed by the GC
+    static std::unordered_map<const CompiledMethod*, std::unique_ptr<ByteArray>> byteArray_storage;
+    byteArray_storage[method.get()] = std::move(byteArray);
     
     return method;
 }
@@ -65,15 +76,15 @@ std::unique_ptr<Context> createContext(
     return std::make_unique<Context>(method, receiver);
 }
 
-// Read a 32-bit little-endian value from bytecode
-static uint32_t readUint32LE(const std::vector<uint8_t>& bytecode, uint32_t offset) {
-    if (offset + 4 > bytecode.size()) {
+// Read a 32-bit little-endian value from ByteArray
+static uint32_t readUint32LEFromByteArray(ByteArray* byteArray, uint32_t offset) {
+    if (offset + 4 > byteArray->size()) {
         throw std::runtime_error("Bytecode read out of bounds");
     }
-    return static_cast<uint32_t>(bytecode[offset]) |
-           (static_cast<uint32_t>(bytecode[offset + 1]) << 8) |
-           (static_cast<uint32_t>(bytecode[offset + 2]) << 16) |
-           (static_cast<uint32_t>(bytecode[offset + 3]) << 24);
+    return static_cast<uint32_t>(byteArray->get(offset)) |
+           (static_cast<uint32_t>(byteArray->get(offset + 1)) << 8) |
+           (static_cast<uint32_t>(byteArray->get(offset + 2)) << 16) |
+           (static_cast<uint32_t>(byteArray->get(offset + 3)) << 24);
 }
 
 bool stepInstruction(Context* context) {
@@ -81,32 +92,31 @@ bool stepInstruction(Context* context) {
         return false;
     }
     
-    // Get bytecode from temporary storage (until ByteArray is implemented)
-    auto bytecode_it = bytecode_storage.find(context->method);
-    if (bytecode_it == bytecode_storage.end()) {
-        return false; // No bytecode stored
+    // Get ByteArray from CompiledMethod
+    ByteArray* byteArray = context->method->getByteArray();
+    if (byteArray == nullptr) {
+        return false; // No bytecode
     }
-    const auto& bytecode = bytecode_it->second;
     
     uint32_t ip = context->instructionPointer;
     
     // Check bounds
-    if (ip >= bytecode.size()) {
+    if (ip >= byteArray->size()) {
         return false;
     }
     
-    uint8_t opcode = bytecode[ip];
+    uint8_t opcode = byteArray->get(ip);
     
     // PUSH_LITERAL (opcode 0)
     // Format: 00 [index:uint32_le]
     // Stack: ... → ..., literal
     if (opcode == 0) {
         // Read 4-byte index
-        if (ip + 5 > bytecode.size()) {
+        if (ip + 5 > byteArray->size()) {
             return false; // Not enough bytes
         }
         
-        uint32_t index = readUint32LE(bytecode, ip + 1);
+        uint32_t index = readUint32LEFromByteArray(byteArray, ip + 1);
         
         // Get literals from temporary storage (until Array is implemented)
         auto literals_it = literals_storage.find(context->method);
