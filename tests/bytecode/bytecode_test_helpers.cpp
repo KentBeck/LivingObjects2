@@ -46,15 +46,16 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
     TaggedValue literalsTagged = Array::toTaggedValue(array.get());
     
     // Create CompiledMethod with ByteArray for bytes and Array for literals
+    // Convert uint32_t parameters to TaggedValue SmallIntegers
     // Store byteArray and array in a way that they persist (we'll manage them with the CompiledMethod)
     // For now, we'll keep them alive by storing them alongside the method
     // TODO: Once we have proper memory management, ByteArray and Array will be heap-allocated
     auto method = std::make_unique<CompiledMethod>(
         bytesTagged,    // bytes (ByteArray)
         literalsTagged, // literals (Array)
-        numArgs,
-        numTemps,
-        primitiveNumber
+        TaggedValue::fromSmallInteger(static_cast<int64_t>(numArgs)),        // numArgs (SmallInteger)
+        TaggedValue::fromSmallInteger(static_cast<int64_t>(numTemps)),      // numTemps (SmallInteger)
+        TaggedValue::fromSmallInteger(static_cast<int64_t>(primitiveNumber)) // primitiveNumber (SmallInteger)
     );
     
     // Keep byteArray and array alive by storing them with the method

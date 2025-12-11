@@ -20,14 +20,14 @@ class CompiledMethod {
 public:
     // Constructor
     CompiledMethod(TaggedValue bytes, TaggedValue literals,
-                   uint32_t numArgs, uint32_t numTemps, uint32_t primitiveNumber);
+                   TaggedValue numArgs, TaggedValue numTemps, TaggedValue primitiveNumber);
     
     // Accessors for Smalltalk object fields
     TaggedValue getBytes() const { return bytes_; }
     TaggedValue getLiterals() const { return literals_; }
-    uint32_t getNumArgs() const { return numArgs_; }
-    uint32_t getNumTemps() const { return numTemps_; }
-    uint32_t getPrimitiveNumber() const { return primitiveNumber_; }
+    TaggedValue getNumArgs() const { return numArgs_; }
+    TaggedValue getNumTemps() const { return numTemps_; }
+    TaggedValue getPrimitiveNumber() const { return primitiveNumber_; }
     
     // Convenience methods for accessing ByteArray
     ByteArray* getByteArray() const;
@@ -42,8 +42,8 @@ public:
 private:
     TaggedValue bytes_;           // Points to ByteArray containing bytecode
     TaggedValue literals_;        // Points to Array containing literals
-    uint32_t numArgs_;            // Number of arguments
-    uint32_t numTemps_;           // Number of temporary variables
-    uint32_t primitiveNumber_;    // Primitive method number (0 = no primitive)
+    TaggedValue numArgs_;        // Number of arguments (SmallInteger)
+    TaggedValue numTemps_;        // Number of temporary variables (SmallInteger)
+    TaggedValue primitiveNumber_; // Primitive method number (SmallInteger, 0 = no primitive)
 };
 
