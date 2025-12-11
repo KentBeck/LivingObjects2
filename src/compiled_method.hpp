@@ -2,6 +2,7 @@
 
 #include "tagged_value.hpp"
 #include "byte_array.hpp"
+#include "array.hpp"
 #include <cstdint>
 #include <cstddef>
 
@@ -32,6 +33,11 @@ public:
     ByteArray* getByteArray() const;
     size_t getBytecodeSize() const;
     uint8_t getBytecodeAt(size_t index) const;
+    
+    // Convenience methods for accessing Array
+    Array* getArray() const;
+    size_t getLiteralsSize() const;
+    TaggedValue getLiteralAt(size_t index) const;
     
 private:
     TaggedValue bytes_;           // Points to ByteArray containing bytecode

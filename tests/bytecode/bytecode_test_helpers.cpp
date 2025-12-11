@@ -3,6 +3,7 @@
 #include "../src/tagged_value.hpp"
 #include "../src/compiled_method.hpp"
 #include "../src/byte_array.hpp"
+#include "../src/array.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <cstdint>
@@ -10,10 +11,6 @@
 #include <unordered_map>
 
 namespace test_helpers {
-
-// Temporary storage for literals until Array is implemented
-// ByteArray is now implemented, so bytecode is accessed through CompiledMethod's ByteArray
-static std::unordered_map<const CompiledMethod*, std::vector<TaggedValue>> literals_storage;
 
 void encodeUint32LE(std::vector<uint8_t>& bytes, uint32_t value) {
     bytes.push_back(static_cast<uint8_t>(value & 0xFF));
@@ -44,26 +41,29 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
     auto byteArray = std::make_unique<ByteArray>(bytecode);
     TaggedValue bytesTagged = ByteArray::toTaggedValue(byteArray.get());
     
-    // Create CompiledMethod with ByteArray for bytes
-    // Store byteArray in a way that it persists (we'll manage it with the CompiledMethod)
-    // For now, we'll keep the byteArray alive by storing it alongside the method
-    // TODO: Once we have proper memory management, ByteArray will be heap-allocated
+    // Create Array from literals vector
+    auto array = std::make_unique<Array>(literals);
+    TaggedValue literalsTagged = Array::toTaggedValue(array.get());
+    
+    // Create CompiledMethod with ByteArray for bytes and Array for literals
+    // Store byteArray and array in a way that they persist (we'll manage them with the CompiledMethod)
+    // For now, we'll keep them alive by storing them alongside the method
+    // TODO: Once we have proper memory management, ByteArray and Array will be heap-allocated
     auto method = std::make_unique<CompiledMethod>(
-        bytesTagged,  // bytes (ByteArray)
-        TaggedValue::nil(),  // literals (will be Array once implemented)
+        bytesTagged,    // bytes (ByteArray)
+        literalsTagged, // literals (Array)
         numArgs,
         numTemps,
         primitiveNumber
     );
     
-    // Store literals in temporary map (until Array is implemented)
-    literals_storage[method.get()] = literals;
-    
-    // Keep byteArray alive by storing it with the method
+    // Keep byteArray and array alive by storing them with the method
     // This is a temporary solution until we have proper memory management
-    // In a real VM, ByteArray would be heap-allocated and managed by the GC
+    // In a real VM, ByteArray and Array would be heap-allocated and managed by the GC
     static std::unordered_map<const CompiledMethod*, std::unique_ptr<ByteArray>> byteArray_storage;
+    static std::unordered_map<const CompiledMethod*, std::unique_ptr<Array>> array_storage;
     byteArray_storage[method.get()] = std::move(byteArray);
+    array_storage[method.get()] = std::move(array);
     
     return method;
 }
@@ -118,20 +118,19 @@ bool stepInstruction(Context* context) {
         
         uint32_t index = readUint32LEFromByteArray(byteArray, ip + 1);
         
-        // Get literals from temporary storage (until Array is implemented)
-        auto literals_it = literals_storage.find(context->method);
-        if (literals_it == literals_storage.end()) {
-            return false; // No literals stored
+        // Get Array from CompiledMethod
+        Array* array = context->method->getArray();
+        if (array == nullptr) {
+            return false; // No literals
         }
-        const auto& literals = literals_it->second;
         
         // Check index bounds
-        if (index >= literals.size()) {
+        if (index >= array->size()) {
             return false; // Index out of bounds
         }
         
         // Push literal onto stack
-        TaggedValue literal = literals[index];
+        TaggedValue literal = array->get(index);
         context->stack.push_back(literal);
         
         // Advance instruction pointer by 5 bytes (1 opcode + 4 index)

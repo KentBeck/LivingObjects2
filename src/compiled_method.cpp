@@ -26,3 +26,23 @@ uint8_t CompiledMethod::getBytecodeAt(size_t index) const {
     return byteArray->get(index);
 }
 
+Array* CompiledMethod::getArray() const {
+    return Array::fromTaggedValue(literals_);
+}
+
+size_t CompiledMethod::getLiteralsSize() const {
+    Array* array = getArray();
+    if (array == nullptr) {
+        return 0;
+    }
+    return array->size();
+}
+
+TaggedValue CompiledMethod::getLiteralAt(size_t index) const {
+    Array* array = getArray();
+    if (array == nullptr) {
+        return TaggedValue::nil();
+    }
+    return array->get(index);
+}
+

@@ -35,6 +35,7 @@ add_library(vm_core
     src/tagged_value.cpp
     src/compiled_method.cpp
     src/byte_array.cpp
+    src/array.cpp
 )
 
 # Test helpers library
