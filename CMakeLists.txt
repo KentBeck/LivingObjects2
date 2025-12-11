@@ -33,15 +33,15 @@ FetchContent_MakeAvailable(googletest)
 # VM core library (real implementations)
 add_library(vm_core
     src/tagged_value.cpp
-    src/compiled_method.cpp
-    src/byte_array.cpp
-    src/array.cpp
+    src/classes/compiled_method.cpp
+    src/classes/byte_array.cpp
+    src/classes/array.cpp
 )
 
 # Test helpers library
 add_library(bytecode_test_helpers
     tests/bytecode/bytecode_test_helpers.cpp
-    tests/bytecode/vm_test_types.cpp
+    src/classes/context.cpp
 )
 target_include_directories(bytecode_test_helpers PUBLIC
     ${CMAKE_SOURCE_DIR}/tests/bytecode

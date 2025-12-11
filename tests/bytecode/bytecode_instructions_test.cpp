@@ -1,5 +1,5 @@
 #include "bytecode_test_helpers.hpp"
-#include "vm_test_types.hpp"  // For CompiledMethod and Context (stubs until Phase 2.5/3.1)
+#include "../src/classes/context.hpp"  // For CompiledMethod and Context
 #include "../src/tagged_value.hpp"  // Real TaggedValue implementation
 #include <gtest/gtest.h>
 #include <vector>

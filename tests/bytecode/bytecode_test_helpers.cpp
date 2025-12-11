@@ -1,9 +1,9 @@
 #include "bytecode_test_helpers.hpp"
-#include "vm_test_types.hpp"
+#include "../src/classes/context.hpp"
 #include "../src/tagged_value.hpp"
-#include "../src/compiled_method.hpp"
-#include "../src/byte_array.hpp"
-#include "../src/array.hpp"
+#include "../src/classes/compiled_method.hpp"
+#include "../src/classes/byte_array.hpp"
+#include "../src/classes/array.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <cstdint>

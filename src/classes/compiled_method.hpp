@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tagged_value.hpp"
+#include "../tagged_value.hpp"
 #include "byte_array.hpp"
 #include "array.hpp"
 #include <cstdint>

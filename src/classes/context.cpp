@@ -1,4 +1,4 @@
-#include "vm_test_types.hpp"
+#include "context.hpp"
 
 CompiledMethod* Context::getMethod() const {
     if (method.isNil() || !method.isPointer()) {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../src/tagged_value.hpp"  // Real TaggedValue implementation
-#include "../src/compiled_method.hpp"  // Real CompiledMethod implementation
-#include "../src/array.hpp"  // Real Array implementation
+#include "../tagged_value.hpp"  // Real TaggedValue implementation
+#include "compiled_method.hpp"  // Real CompiledMethod implementation
+#include "array.hpp"  // Real Array implementation
 #include <vector>
 #include <cstdint>
 #include <cstddef>
