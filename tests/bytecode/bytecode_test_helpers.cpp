@@ -1,12 +1,19 @@
 #include "bytecode_test_helpers.hpp"
 #include "vm_test_types.hpp"
 #include "../src/tagged_value.hpp"
+#include "../src/compiled_method.hpp"
 #include <cstring>
 #include <stdexcept>
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 
 namespace test_helpers {
+
+// Temporary storage for bytecode and literals until ByteArray and Array are implemented
+// This maps CompiledMethod pointers to their bytecode/literals for testing
+static std::unordered_map<const CompiledMethod*, std::vector<uint8_t>> bytecode_storage;
+static std::unordered_map<const CompiledMethod*, std::vector<TaggedValue>> literals_storage;
 
 void encodeUint32LE(std::vector<uint8_t>& bytes, uint32_t value) {
     bytes.push_back(static_cast<uint8_t>(value & 0xFF));
@@ -33,7 +40,21 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
     uint32_t numTemps,
     uint32_t primitiveNumber
 ) {
-    return std::make_unique<CompiledMethod>(bytecode, literals, numArgs, numTemps, primitiveNumber);
+    // Create CompiledMethod with nil for bytes and literals (ByteArray/Array not implemented yet)
+    // Store the actual bytecode/literals in temporary storage for testing
+    auto method = std::make_unique<CompiledMethod>(
+        TaggedValue::nil(),  // bytes (will be ByteArray once implemented)
+        TaggedValue::nil(),  // literals (will be Array once implemented)
+        numArgs,
+        numTemps,
+        primitiveNumber
+    );
+    
+    // Store bytecode and literals in temporary maps
+    bytecode_storage[method.get()] = bytecode;
+    literals_storage[method.get()] = literals;
+    
+    return method;
 }
 
 std::unique_ptr<Context> createContext(
@@ -60,7 +81,13 @@ bool stepInstruction(Context* context) {
         return false;
     }
     
-    const auto& bytecode = context->method->bytecode;
+    // Get bytecode from temporary storage (until ByteArray is implemented)
+    auto bytecode_it = bytecode_storage.find(context->method);
+    if (bytecode_it == bytecode_storage.end()) {
+        return false; // No bytecode stored
+    }
+    const auto& bytecode = bytecode_it->second;
+    
     uint32_t ip = context->instructionPointer;
     
     // Check bounds
@@ -81,13 +108,20 @@ bool stepInstruction(Context* context) {
         
         uint32_t index = readUint32LE(bytecode, ip + 1);
         
+        // Get literals from temporary storage (until Array is implemented)
+        auto literals_it = literals_storage.find(context->method);
+        if (literals_it == literals_storage.end()) {
+            return false; // No literals stored
+        }
+        const auto& literals = literals_it->second;
+        
         // Check index bounds
-        if (index >= context->method->literals.size()) {
+        if (index >= literals.size()) {
             return false; // Index out of bounds
         }
         
         // Push literal onto stack
-        TaggedValue literal = context->method->literals[index];
+        TaggedValue literal = literals[index];
         context->stack.push_back(literal);
         
         // Advance instruction pointer by 5 bytes (1 opcode + 4 index)

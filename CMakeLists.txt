@@ -33,6 +33,7 @@ FetchContent_MakeAvailable(googletest)
 # VM core library (real implementations)
 add_library(vm_core
     src/tagged_value.cpp
+    src/compiled_method.cpp
 )
 
 # Test helpers library
