@@ -58,9 +58,9 @@ TaggedValue getStackTop(Context* context);
 size_t getStackDepth(Context* context);
 
 /**
- * Create a TaggedValue from a SmallInteger
+ * Create a TaggedValue from a SmallInteger (64-bit)
  */
-TaggedValue makeSmallInteger(int32_t value);
+TaggedValue makeSmallInteger(int64_t value);
 
 /**
  * Create a TaggedValue for nil

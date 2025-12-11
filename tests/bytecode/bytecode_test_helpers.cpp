@@ -121,7 +121,7 @@ size_t getStackDepth(Context* context) {
     return context->stack.size();
 }
 
-TaggedValue makeSmallInteger(int32_t value) {
+TaggedValue makeSmallInteger(int64_t value) {
     return TaggedValue::fromSmallInteger(value);
 }
 

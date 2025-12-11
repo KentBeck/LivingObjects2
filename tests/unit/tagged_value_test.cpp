@@ -36,14 +36,16 @@ TEST(TaggedValue, SmallIntegerEncoding) {
     ASSERT_TRUE(negative.isSmallInteger());
     ASSERT_EQ(negative.toSmallInteger(), -1);
     
-    // Test 31-bit signed integer range
-    TaggedValue max = TaggedValue::fromSmallInteger(0x7FFFFFFF);
+    // Test 62-bit signed integer range (64-bit TaggedValue with 2-bit tag = 62 bits for value)
+    // Maximum: 2^61 - 1 = 0x1FFFFFFFFFFFFFFF (bits 0-60 are 1, bit 61 is 0)
+    // Minimum: -2^61 = -0x2000000000000000 (bit 61 is 1, sign bit)
+    TaggedValue max = TaggedValue::fromSmallInteger(0x1FFFFFFFFFFFFFFFLL);
     ASSERT_TRUE(max.isSmallInteger());
-    ASSERT_EQ(max.toSmallInteger(), 0x7FFFFFFF);
+    ASSERT_EQ(max.toSmallInteger(), 0x1FFFFFFFFFFFFFFFLL);
     
-    TaggedValue min = TaggedValue::fromSmallInteger(-0x80000000);
+    TaggedValue min = TaggedValue::fromSmallInteger(-0x2000000000000000LL);
     ASSERT_TRUE(min.isSmallInteger());
-    ASSERT_EQ(min.toSmallInteger(), -0x80000000);
+    ASSERT_EQ(min.toSmallInteger(), -0x2000000000000000LL);
 }
 
 // ============================================================================

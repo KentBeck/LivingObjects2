@@ -56,9 +56,20 @@ target_link_libraries(bytecode_instructions_test
     GTest::gtest_main
 )
 
+# TaggedValue unit tests
+add_executable(tagged_value_test
+    tests/unit/tagged_value_test.cpp
+)
+target_link_libraries(tagged_value_test
+    vm_core
+    GTest::gtest
+    GTest::gtest_main
+)
+
 # Enable testing
 enable_testing()
 add_test(NAME BytecodeInstructionsTest COMMAND bytecode_instructions_test)
+add_test(NAME TaggedValueTest COMMAND tagged_value_test)
 
 # Print configuration
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

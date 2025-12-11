@@ -14,7 +14,7 @@
  */
 class TaggedValue {
 public:
-    using Value = uintptr_t;
+    using Value = uint64_t;  // Always 64 bits
     
     // Tag constants
     static constexpr Value TAG_POINTER = 0x00;
@@ -23,10 +23,10 @@ public:
     static constexpr Value TAG_INTEGER = 0x03;
     static constexpr Value TAG_MASK = 0x03;
     
-    // Special values
-    static constexpr Value NIL = 0x00000001;
-    static constexpr Value TRUE = 0x00000005;
-    static constexpr Value FALSE = 0x00000009;
+    // Special values (64-bit)
+    static constexpr Value NIL = 0x0000000000000001ULL;
+    static constexpr Value TRUE = 0x0000000000000005ULL;
+    static constexpr Value FALSE = 0x0000000000000009ULL;
     
     // Construction
     TaggedValue() : value_(NIL) {}
@@ -42,8 +42,9 @@ public:
     bool isBoolean() const { return isTrue() || isFalse(); }
     
     // Encoding/decoding
-    static TaggedValue fromSmallInteger(int32_t n);
-    int32_t toSmallInteger() const;
+    // SmallInteger uses 63-bit signed integers (64-bit TaggedValue with 2-bit tag = 62 bits value = 63-bit signed)
+    static TaggedValue fromSmallInteger(int64_t n);
+    int64_t toSmallInteger() const;
     
     static TaggedValue fromPointer(void* ptr);
     void* toPointer() const;
