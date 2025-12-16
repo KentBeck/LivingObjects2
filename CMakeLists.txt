@@ -34,14 +34,13 @@ FetchContent_MakeAvailable(googletest)
 add_library(vm_core
     src/tagged_value.cpp
     src/classes/compiled_method.cpp
-    src/classes/byte_array.cpp
-    src/classes/array.cpp
+    src/runtime/byte_array.cpp
+    src/runtime/array.cpp
 )
 
 # Test helpers library
 add_library(bytecode_test_helpers
     tests/bytecode/bytecode_test_helpers.cpp
-    src/classes/context.cpp
 )
 target_include_directories(bytecode_test_helpers PUBLIC
     ${CMAKE_SOURCE_DIR}/tests/bytecode
@@ -74,6 +73,9 @@ target_link_libraries(tagged_value_test
 enable_testing()
 add_test(NAME BytecodeInstructionsTest COMMAND bytecode_instructions_test)
 add_test(NAME TaggedValueTest COMMAND tagged_value_test)
+add_test(NAME MirrorLayoutCheck
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/check_mirror_layout.py ${CMAKE_SOURCE_DIR}/src/classes
+)
 
 # Print configuration
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")

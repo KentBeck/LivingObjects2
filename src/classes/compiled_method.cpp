@@ -1,48 +1,13 @@
 #include "compiled_method.hpp"
 
+namespace st {
+
 CompiledMethod::CompiledMethod(TaggedValue bytes, TaggedValue literals,
                                TaggedValue numArgs, TaggedValue numTemps, TaggedValue primitiveNumber)
     : bytes_(bytes), literals_(literals), numArgs_(numArgs), 
       numTemps_(numTemps), primitiveNumber_(primitiveNumber) {
 }
 
-ByteArray* CompiledMethod::getByteArray() const {
-    return ByteArray::fromTaggedValue(bytes_);
-}
+} // namespace st
 
-size_t CompiledMethod::getBytecodeSize() const {
-    ByteArray* byteArray = getByteArray();
-    if (byteArray == nullptr) {
-        return 0;
-    }
-    return byteArray->size();
-}
-
-uint8_t CompiledMethod::getBytecodeAt(size_t index) const {
-    ByteArray* byteArray = getByteArray();
-    if (byteArray == nullptr) {
-        return 0;
-    }
-    return byteArray->get(index);
-}
-
-Array* CompiledMethod::getArray() const {
-    return Array::fromTaggedValue(literals_);
-}
-
-size_t CompiledMethod::getLiteralsSize() const {
-    Array* array = getArray();
-    if (array == nullptr) {
-        return 0;
-    }
-    return array->size();
-}
-
-TaggedValue CompiledMethod::getLiteralAt(size_t index) const {
-    Array* array = getArray();
-    if (array == nullptr) {
-        return TaggedValue::nil();
-    }
-    return array->get(index);
-}
 

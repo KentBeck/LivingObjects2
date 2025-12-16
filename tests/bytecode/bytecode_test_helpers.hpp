@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../src/tagged_value.hpp"
-#include "../src/classes/context.hpp"  // For CompiledMethod and Context
+#include "../src/classes/context.hpp"
+#include "../src/classes/compiled_method.hpp"
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -14,7 +15,7 @@ namespace test_helpers {
 /**
  * Create a CompiledMethod in memory with specified bytecode and literals
  */
-std::unique_ptr<CompiledMethod> createCompiledMethod(
+std::unique_ptr<st::CompiledMethod> createCompiledMethod(
     const std::vector<uint8_t>& bytecode,
     const std::vector<TaggedValue>& literals = {},
     uint32_t numArgs = 0,
@@ -25,8 +26,8 @@ std::unique_ptr<CompiledMethod> createCompiledMethod(
 /**
  * Create a Context for executing a method
  */
-std::unique_ptr<Context> createContext(
-    CompiledMethod* method,
+std::unique_ptr<st::Context> createContext(
+    st::CompiledMethod* method,
     TaggedValue receiver,
     const std::vector<TaggedValue>& args = {}
 );
@@ -35,27 +36,27 @@ std::unique_ptr<Context> createContext(
  * Step forward one instruction in the context
  * Returns true if instruction executed successfully, false otherwise
  */
-bool stepInstruction(Context* context);
+bool stepInstruction(st::Context* context);
 
 /**
  * Get the current instruction pointer
  */
-uint32_t getInstructionPointer(Context* context);
+uint32_t getInstructionPointer(st::Context* context);
 
 /**
  * Get the stack as a vector (for testing)
  */
-std::vector<TaggedValue> getStack(Context* context);
+std::vector<TaggedValue> getStack(st::Context* context);
 
 /**
  * Get the top of the stack
  */
-TaggedValue getStackTop(Context* context);
+TaggedValue getStackTop(st::Context* context);
 
 /**
  * Get the stack depth
  */
-size_t getStackDepth(Context* context);
+size_t getStackDepth(st::Context* context);
 
 /**
  * Create a TaggedValue from a SmallInteger (64-bit)

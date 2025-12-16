@@ -1,35 +1,33 @@
 #pragma once
 
-#include "../tagged_value.hpp"  // Real TaggedValue implementation
-#include "compiled_method.hpp"  // Real CompiledMethod implementation
-#include "array.hpp"  // Real Array implementation
-#include <vector>
-#include <cstdint>
-#include <cstddef>
+#include "mirror.hpp"
 
-// Real implementations:
-// TaggedValue: REAL implementation in src/tagged_value.hpp ✓
-// CompiledMethod: REAL implementation in src/compiled_method.hpp ✓
-// Array: REAL implementation in src/array.hpp ✓
-// Context: STUB - will be replaced in Phase 3.1
+namespace st {
 
-// Minimal stub Context (using Smalltalk objects)
+// Smalltalk-mirror Context (slot-only).
+// Note: for now this mirrors only the fields our tests need. More slots will be added as we implement the real Context layout.
 class Context {
 public:
-    TaggedValue method;        // Points to CompiledMethod
-    TaggedValue receiver;      // Receiver object
-    TaggedValue stack;         // Points to Array containing stack
-    TaggedValue instructionPointer; // Instruction pointer (SmallInteger)
-    
-    Context(TaggedValue m, TaggedValue r) 
-        : method(m), receiver(r), 
-          stack(TaggedValue::nil()),  // Stack will be initialized as empty Array
-          instructionPointer(TaggedValue::fromSmallInteger(0)) {}
-    
-    // Convenience methods to access objects
-    CompiledMethod* getMethod() const;
-    Array* getStackArray() const;
-    uint32_t getInstructionPointerValue() const;
-    void setInstructionPointerValue(uint32_t ip);
+    Context(TaggedValue method, TaggedValue receiver, TaggedValue stack, TaggedValue instructionPointer)
+        : method_(method),
+          receiver_(receiver),
+          stack_(stack),
+          instructionPointer_(instructionPointer) {}
+
+    TaggedValue method() const { return method_; }
+    TaggedValue receiver() const { return receiver_; }
+    TaggedValue stack() const { return stack_; }
+    TaggedValue instructionPointer() const { return instructionPointer_; }
+
+    void setStack(TaggedValue stack) { stack_ = stack; }
+    void setInstructionPointer(TaggedValue ip) { instructionPointer_ = ip; }
+
+private:
+    ST_SLOT(method_);             // CompiledMethod (object pointer)
+    ST_SLOT(receiver_);           // Object
+    ST_SLOT(stack_);              // Array (object pointer)
+    ST_SLOT(instructionPointer_); // SmallInteger
 };
+
+} // namespace st
 

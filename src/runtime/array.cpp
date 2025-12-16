@@ -1,6 +1,8 @@
 #include "array.hpp"
 #include <stdexcept>
 
+namespace runtime {
+
 Array::Array(const std::vector<TaggedValue>& elements)
     : elements_(elements) {
 }
@@ -27,6 +29,22 @@ void Array::set(size_t index, TaggedValue value) {
     elements_[index] = value;
 }
 
+TaggedValue Array::pop() {
+    if (elements_.empty()) {
+        throw std::runtime_error("Array pop on empty");
+    }
+    TaggedValue v = elements_.back();
+    elements_.pop_back();
+    return v;
+}
+
+TaggedValue Array::back() const {
+    if (elements_.empty()) {
+        throw std::runtime_error("Array back on empty");
+    }
+    return elements_.back();
+}
+
 TaggedValue Array::toTaggedValue(Array* array) {
     if (array == nullptr) {
         return TaggedValue::nil();
@@ -40,4 +58,6 @@ Array* Array::fromTaggedValue(TaggedValue value) {
     }
     return reinterpret_cast<Array*>(value.toPointer());
 }
+
+} // namespace runtime
 

@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <cstring>
 
+namespace runtime {
+
 ByteArray::ByteArray(const std::vector<uint8_t>& bytes)
     : bytes_(bytes) {
 }
@@ -41,4 +43,6 @@ ByteArray* ByteArray::fromTaggedValue(TaggedValue value) {
     }
     return reinterpret_cast<ByteArray*>(value.toPointer());
 }
+
+} // namespace runtime
 
